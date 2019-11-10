@@ -1,8 +1,10 @@
 const Discord = require('discord.js');
 const fs = require("fs");
+var download = require('download-file');
 
 var TOKEN;
 var PREFIX = '!';
+var URL = 'https://www.victoria.ac.nz/__data/assets/excel_doc/0005/1766759/end-of-year-exam-timetable.xlsx';
 
 const client = new Discord.Client();
 
@@ -14,11 +16,19 @@ if (fs.existsSync('./auth.json')) {
 }
 
 if (fs.existsSync('./config.json')) {
-  const { prefix } = require('./config.json');
+  const { prefix, url } = require('./config.json');
   PREFIX = prefix;
+  URL = url;
 } else {
   console.log('Missing config.json file configuration settings for the bot! Default settings will be used.');
 }
+
+var options = { filename: "data.xlsx" };
+download(URL, options, function(error){
+  if (error) {
+    throw error;
+  }
+})
 
 client.on('ready', () => {
   client.user.setStatus('online');
