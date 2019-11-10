@@ -9,11 +9,15 @@ const client = new Discord.Client();
 if (fs.existsSync('./auth.json')) {
   const { token } = require('./auth.json');
   TOKEN = token;
+} else {
+  throw 'Missing auth.json file containing the token for the bot!';
 }
 
 if (fs.existsSync('./config.json')) {
   const { prefix } = require('./config.json');
   PREFIX = prefix;
+} else {
+  console.log('Missing config.json file configuration settings for the bot! Default settings will be used.');
 }
 
 client.on('ready', () => {
