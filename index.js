@@ -1,10 +1,12 @@
 const Discord = require('discord.js');
 const fs = require("fs");
 const download = require('download-file');
+const xlsx = require('xlsx');
 
 var TOKEN;
 var PREFIX = '!';
 var URL = 'https://www.victoria.ac.nz/__data/assets/excel_doc/0005/1766759/end-of-year-exam-timetable.xlsx';
+var FILENAME = "data.xlsx";
 
 const client = new Discord.Client();
 
@@ -24,13 +26,23 @@ if (fs.existsSync('./config.json')) {
 }
 
 function fetchData() {
-  var options = { filename: "data.xlsx" };
+  var options = { filename: FILENAME };
   download(URL, options, function(error){
     if (error) {
       console.error(error);
       return false;
     } else return true;
   })
+}
+
+function processData() {
+  var stream = fs.createReadStream(FILENAME);
+  var buffers = [];
+  stream.on('data', function(data) { buffers.push(data); });
+  stream.on('end', function() {
+    var buffer = Buffer.concat(buffers);
+    var workbook = xlsx.read(buffer, {type:"buffer"});
+  });
 }
 
 client.on('ready', () => {
@@ -79,4 +91,6 @@ function formatTime(milliseconds) {
 }
 
 fetchData();
+processData();
+
 client.login(TOKEN);
