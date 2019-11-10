@@ -35,6 +35,11 @@ client.on('message', message => {
       .setDescription('A bot created to provide information about Victoria University of Wellington examination times for Discord.')
       .setFooter('Made by Toby', 'https://avatars0.githubusercontent.com/u/38903351'); // github profile picture
     message.channel.send(embeddedMessage);
+  } else if (args[0] == 'status') {
+    const embeddedMessage = new richEmbedTemplate()
+      .setTitle('Status')
+      .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`);
+    message.channel.send(embeddedMessage);
   }
 });
 
@@ -45,6 +50,16 @@ function richEmbedTemplate() {
     .setColor('#115737')
     .setAuthor('Examination Information', 'attachment://vuw-logo.png', 'https://www.victoria.ac.nz/students/study/timetables')
     return embed;
+}
+
+function formatTime(milliseconds) {
+  let totalSeconds = (milliseconds / 1000);
+  let days = Math.floor(totalSeconds / 86400);
+  let hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  let minutes = Math.floor(totalSeconds / 60);
+  let seconds = Math.floor(totalSeconds % 60);
+  return `${days} days, ${hours} hours, ${minutes} minutes and ${seconds} seconds`;
 }
 
 client.login(TOKEN);
