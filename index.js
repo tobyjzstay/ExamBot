@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const fs = require("fs");
-var download = require('download-file');
+const download = require('download-file');
 
 var TOKEN;
 var PREFIX = '!';
@@ -23,12 +23,15 @@ if (fs.existsSync('./config.json')) {
   console.log('Missing config.json file configuration settings for the bot! Default settings will be used.');
 }
 
-var options = { filename: "data.xlsx" };
-download(URL, options, function(error){
-  if (error) {
-    throw error;
-  }
-})
+function fetchData() {
+  var options = { filename: "data.xlsx" };
+  download(URL, options, function(error){
+    if (error) {
+      console.error(error);
+      return false;
+    } else return true;
+  })
+}
 
 client.on('ready', () => {
   client.user.setStatus('online');
@@ -50,6 +53,9 @@ client.on('message', message => {
       .setTitle('Status')
       .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`);
     message.channel.send(embeddedMessage);
+  } else if (args[0] == 'fetch') {
+    if (fetchData()) message.reply("an error has occurred attempting to fetch the exam data.");
+    else message.reply("successfully fetched the exam data.");
   }
 });
 
@@ -72,4 +78,5 @@ function formatTime(milliseconds) {
   return `${days} days, ${hours} hours, ${minutes} minutes and ${seconds} seconds`;
 }
 
+fetchData();
 client.login(TOKEN);
