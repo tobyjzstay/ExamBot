@@ -122,20 +122,26 @@ client.on('message', message => {
     else message.reply("successfully fetched the exam data.");
   } else if (args[0] == 'exam') {
     if (args.length < 2) {
-      message.reply(`missing arguments. Valid arguments: \`!exam <course>\` e.g. \`!exam comp102\``);
+      message.reply(`missing arguments. Valid arguments: \`!exam <course> [course ...]\` e.g. \`!exam comp102\` \`!exam cgra-151 comp-103 engr-123\``);
       return;
     }
-    var exam = parseExam(args[1].toUpperCase());
-    if (exam != undefined) {
-      var datum = data[exam];
-      if (datum != undefined) {
-        const embeddedMessage = new richEmbedTemplate()
-          .setTitle('Exam Times')
-          .setDescription(`\`\`\`${exam}\t${datum.duration}\t${datum.date}\t${datum.start}\t${datum.rooms}\`\`\``)
-          .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
-        message.reply(embeddedMessage);
-      } else message.reply(`couldn't find exam data for '${args[1]}'. Does the course exist for the current trimister?`);
-    } else message.reply(`invalid course. Valid arguments: \`!exam <course>\` e.g. \`!exam comp102\``);
+
+    var examData = '';
+    for (var i = 1; i < args.length; i++) {
+      var exam = parseExam(args[i].toUpperCase());
+      if (exam != undefined) {
+        var datum = data[exam];
+        if (datum != undefined) {
+          examData += `${exam}\t${datum.duration}\t${datum.date}\t${datum.start}\t${datum.rooms}\n`;
+        } else message.reply(`couldn't find exam data for '${args[i]}'. Does the course exist for the current trimister?`);
+      } else message.reply(`'${args[i]}' is not a valid course.`);
+    }
+
+    const embeddedMessage = new richEmbedTemplate()
+      .setTitle('Exam Times')
+      .setDescription(`\`\`\`${examData}\`\`\``)
+      .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
+    message.reply(embeddedMessage);
   }
 });
 
