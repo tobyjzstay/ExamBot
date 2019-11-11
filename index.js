@@ -35,6 +35,8 @@ function fetchData() {
   })
 }
 
+var data = {};
+
 function processData() {
   var stream = fs.createReadStream(FILENAME);
   var buffers = [];
@@ -42,7 +44,57 @@ function processData() {
   stream.on('end', function() {
     var buffer = Buffer.concat(buffers);
     var workbook = xlsx.read(buffer, {type:"buffer"});
+    var worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    for (var y = 4; y <= 289; y++) {
+      var examCell = worksheet['A'+y];
+      var examValue = (examCell ? examCell.v : undefined);
+      var exam = parseExam(examValue);
+      if (exam != undefined) {
+        var durationCell = worksheet['B'+y];
+        var durationValue = (durationCell ? durationCell.v : undefined);
+        var duration = parseDuration(durationValue);
+        var dateCell = worksheet['C'+y];
+        var dateValue = (dateCell ? dateCell.v : undefined);
+        var date = parseDate(dateValue);
+        var startCell = worksheet['D'+y];
+        var startValue = (startCell ? startCell.v : undefined);
+        var start = parseStart(startValue);
+        var roomsCell = worksheet['E'+y];
+        var roomsValue = (roomsCell ? roomsCell.v : undefined);
+        var rooms = parseRooms(roomsValue);
+        data[exam] = { duration: duration, date: date, start: start, rooms: rooms }
+      }
+    }
   });
+}
+
+function parseExam(exam) {
+  if (/^[a-zA-Z]{4}[0-9]{3}/.test(exam)) {
+    return exam.slice(0, 7).toUpperCase();
+  } else return undefined;
+}
+
+function parseDuration(duration) {
+  return duration;
+}
+
+function parseDate(date) {
+  var date = new Date((date-25569)*86400000);
+  return `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`
+}
+
+function parseStart(start) {
+  var hour = Math.floor(start*24);
+  var minute = Math.floor(start*24%1*60);
+  var meridiem = 'AM';
+  if (hour >= 12) meridiem = 'PM';
+  return `${hour%12}:${minute} ${meridiem}`
+}
+
+function parseRooms(rooms) {
+  if (true) {
+    return rooms;
+  } else return undefined;
 }
 
 client.on('ready', () => {
