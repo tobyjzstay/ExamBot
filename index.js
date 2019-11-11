@@ -120,6 +120,22 @@ client.on('message', message => {
   } else if (args[0] == 'fetch') {
     if (fetchData()) message.reply("an error has occurred attempting to fetch the exam data.");
     else message.reply("successfully fetched the exam data.");
+  } else if (args[0] == 'exam') {
+    if (args.length < 2) {
+      message.reply(`missing arguments. Valid arguments: \`!exam <course>\` e.g. \`!exam comp102\``);
+      return;
+    }
+    var exam = parseExam(args[1].toUpperCase());
+    if (exam != undefined) {
+      var datum = data[exam];
+      if (datum != undefined) {
+        const embeddedMessage = new richEmbedTemplate()
+          .setTitle('Exam Times')
+          .setDescription(`\`\`\`${exam}\t${datum.duration}\t${datum.date}\t${datum.start}\t${datum.rooms}\`\`\``)
+          .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
+        message.reply(embeddedMessage);
+      } else message.reply(`couldn't find exam data for '${args[1]}'. Does the course exist for the current trimister?`);
+    } else message.reply(`invalid course. Valid arguments: \`!exam <course>\` e.g. \`!exam comp102\``);
   }
 });
 
