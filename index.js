@@ -97,6 +97,26 @@ function parseRooms(rooms) {
   } else return undefined;
 }
 
+function parseRole(role) {
+  if (/^[a-zA-Z]{4}-[0-9]{3}/.test(role)) {
+    return role.slice(0, 4).toUpperCase() + role.slice(5, 8);
+  } else return undefined;
+}
+
+function formatExams(message, exams, displayErrors) {
+  var examData = '';
+  for (var i = 0; i < exams.length; i++) {
+    var exam = parseExam(exams[i].toUpperCase());
+    if (exam != undefined) {
+      var datum = data[exam];
+      if (datum != undefined) {
+        examData += `${exam}\t${datum.duration}\t${datum.date}\t${datum.start}\t${datum.rooms}\n`;
+      } else if (displayErrors) message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
+    } else  if (displayErrors) message.reply(`'${exams[i]}' is not a valid course.`);
+  }
+  return examData;
+}
+
 client.on('ready', () => {
   client.user.setStatus('online');
   client.user.setActivity(`${PREFIX}help`);
@@ -126,22 +146,33 @@ client.on('message', message => {
       return;
     }
 
-    var examData = '';
+    var exams = [args.length-1];
     for (var i = 1; i < args.length; i++) {
-      var exam = parseExam(args[i].toUpperCase());
-      if (exam != undefined) {
-        var datum = data[exam];
-        if (datum != undefined) {
-          examData += `${exam}\t${datum.duration}\t${datum.date}\t${datum.start}\t${datum.rooms}\n`;
-        } else message.reply(`couldn't find exam data for '${args[i]}'. Does the course exist for the current trimister?`);
-      } else message.reply(`'${args[i]}' is not a valid course.`);
+      exams[i-1] = args[i];
     }
-
+    var examData = formatExams(message, exams, true);
+    if (examData.length > 0) {
     const embeddedMessage = new richEmbedTemplate()
       .setTitle('Exam Times')
       .setDescription(`\`\`\`${examData}\`\`\``)
       .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
     message.reply(embeddedMessage);
+    }
+  } else if (args[0] == 'exams') {
+    var exams = new Array();
+    message.member.roles.forEach(function(value) {
+      var exam = parseRole(value.name);
+      if (exam) exams.push(exam);
+    });
+    var examData = formatExams(message, exams, false);
+
+    if (examData.length > 0) {
+      const embeddedMessage = new richEmbedTemplate()
+        .setTitle('Exam Times')
+        .setDescription(`\`\`\`${examData}\`\`\``)
+        .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
+      message.reply(embeddedMessage);
+    } else message.reply('couldn\'t find exam data for your course roles for the current trimister.');
   }
 });
 
