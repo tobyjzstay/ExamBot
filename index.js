@@ -50,22 +50,20 @@ function processData() {
       var examValue = (examCell ? examCell.v : undefined);
       var exam = parseExam(examValue);
       if (exam != undefined) {
-        var durationCell = worksheet['B'+y];
-        var durationValue = (durationCell ? durationCell.v : undefined);
-        var duration = parseDuration(durationValue);
-        var dateCell = worksheet['C'+y];
-        var dateValue = (dateCell ? dateCell.v : undefined);
-        var date = parseDate(dateValue);
-        var startCell = worksheet['D'+y];
-        var startValue = (startCell ? startCell.v : undefined);
-        var start = parseStart(startValue);
-        var roomsCell = worksheet['E'+y];
-        var roomsValue = (roomsCell ? roomsCell.v : undefined);
-        var rooms = parseRooms(roomsValue);
-        data[exam] = { duration: duration, date: date, start: start, rooms: rooms }
+        var durationValue = getValue(worksheet, 'B'+y);
+        var dateValue = getValue(worksheet, 'C'+y);
+        var startValue = getValue(worksheet, 'D'+y);
+        var roomsValue = getValue(worksheet, 'E'+y);
+        data[exam] = { duration: durationValue, date: dateValue, start: startValue, rooms: roomsValue }
       }
     }
   });
+}
+
+function getValue(worksheet, id) {
+  var cell = worksheet[id];
+  var value = (cell ? cell.v : undefined);
+  return value;
 }
 
 function parseExam(exam) {
@@ -79,8 +77,12 @@ function parseDuration(duration) {
 }
 
 function parseDate(date) {
-  var date = new Date((date-25569)*86400000);
+  var date = convertToDate(date);
   return `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`
+}
+
+function convertToDate(date) {
+  return new Date((date-25569)*86400000);
 }
 
 function parseStart(start) {
@@ -110,7 +112,7 @@ function formatExams(message, exams, displayErrors) {
     if (exam != undefined) {
       var datum = data[exam];
       if (datum != undefined) {
-        examData += `${exam}\t${datum.duration}\t${datum.date}\t${datum.start}\t${datum.rooms}\n`;
+        examData += `${exam}\t${parseDuration(datum.duration)}\t${parseDate(datum.date)}\t${parseStart(datum.start)}\t${parseRooms(datum.rooms)}\n`;
       } else if (displayErrors) message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
     } else  if (displayErrors) message.reply(`'${exams[i]}' is not a valid course.`);
   }
