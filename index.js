@@ -8,6 +8,8 @@ var PREFIX = '!';
 var URL = 'https://www.victoria.ac.nz/__data/assets/excel_doc/0005/1766759/end-of-year-exam-timetable.xlsx';
 var FILENAME = "data.xlsx";
 
+var MAX_EMBED = 2000;
+
 const client = new Discord.Client();
 
 if (fs.existsSync('./auth.json')) {
@@ -78,7 +80,11 @@ function parseDuration(duration) {
 
 function parseDate(date) {
   var date = convertToDate(date);
-  return `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`
+  var day = date.getDate();
+  if (day.toString().length == 1) day = '0' + day;
+  var month = date.getMonth()+1;
+  if (month.toString().length == 1) month = '0' + month;
+  return `${day}/${month}/${date.getFullYear()}`
 }
 
 function convertToDate(date) {
@@ -175,6 +181,43 @@ client.on('message', message => {
         .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
       message.reply(embeddedMessage);
     } else message.reply('couldn\'t find exam data for your course roles for the current trimister.');
+  } else if (args[0] == 'list') {
+    var exams = Object.keys(data);
+    exams.sort(function(a, b) {
+      if(a < b) { return -1; }
+      if(a > b) { return 1; }
+      return 0;
+    })
+    var examData = formatExams(message, exams, true);
+
+    var examDataMessages = new Array();
+    var examDataList = examData.split("\n");
+    var currentMessage = "";
+    for (var i = 0; i < examDataList.length; i++) {
+      if (currentMessage.length + examDataList[i].length > MAX_EMBED) {
+        examDataMessages.push(currentMessage);
+        currentMessage = examDataList[i];
+      } else {
+        currentMessage += examDataList[i] + "\n";
+      }
+    }
+    for (var i = 0; i < examDataMessages.length; i++) {
+      var embeddedMessage = null;
+      if (i == 0) {
+        embeddedMessage = new richEmbedTemplate()
+          .setTitle('Exam Times')
+          .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
+          .setFooter(`Page ${i+1} of ${examDataMessages.length}`);
+      } else {
+        embeddedMessage = new blankEmbedTemplate()
+          .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
+          .setFooter(`Page ${i+1} of ${examDataMessages.length}`);
+      }
+      if (i == examDataMessages.length-1) embeddedMessage.addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
+
+      if (i == 0) message.reply(embeddedMessage);
+      else message.channel.send(embeddedMessage);
+    }
   }
 });
 
@@ -184,6 +227,12 @@ function richEmbedTemplate() {
     .attachFile(logo)
     .setColor('#115737')
     .setAuthor('Examination Information', 'attachment://vuw-logo.png', 'https://www.victoria.ac.nz/students/study/timetables')
+    return embed;
+}
+
+function blankEmbedTemplate() {
+  var embed = new Discord.RichEmbed()
+    .setColor('#115737')
     return embed;
 }
 
