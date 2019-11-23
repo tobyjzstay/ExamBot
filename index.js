@@ -9,28 +9,31 @@ const fs = require("fs");
 const download = require('download-file');
 const xlsx = require('xlsx');
 
+var DATA_FILE = 'data.xlsx';
+var AUTH_FILE = './auth.json';
+var CONFIG_FILE = './config.json';
+
 var TOKEN;
 var PREFIX = '!';
 var URL = 'https://www.victoria.ac.nz/__data/assets/excel_doc/0005/1766759/end-of-year-exam-timetable.xlsx';
-var FILENAME = "data.xlsx";
-
 var MAX_EMBED = 2000; // maximum characters allowed per embedded message
 
 const client = new Discord.Client();
 
 // retrive the token
-if (fs.existsSync('./auth.json')) {
-  const { token } = require('./auth.json');
+if (fs.existsSync(AUTH_FILE)) {
+  const { token } = require(AUTH_FILE);
   TOKEN = token;
 } else { // bot can't do much without a token...
   throw 'Missing auth.json file containing the token for the bot!';
 }
 
 // load configuration settings if there is a config file
-if (fs.existsSync('./config.json')) {
-  const { prefix, url } = require('./config.json');
+if (fs.existsSync(CONFIG_FILE)) {
+  const { prefix, url, max_embed } = require(CONFIG_FILE);
   PREFIX = prefix;
   URL = url;
+  MAX_EMBED = max_embed;
 } else {
   console.log('Missing config.json file configuration settings for the bot! Default settings will be used.');
 }
@@ -40,7 +43,7 @@ if (fs.existsSync('./config.json')) {
  * @return {boolean}
  */
 function fetchData() {
-  var options = { filename: FILENAME };
+  var options = { filename: DATA_FILE };
   download(URL, options, function(error){
     if (error) {
       console.error(error);
@@ -55,7 +58,7 @@ var data = {}; // stores all the raw exam data
  * Takes the data file and adds it to the object data array.
  */
 function processData() {
-  var stream = fs.createReadStream(FILENAME);
+  var stream = fs.createReadStream(DATA_FILE);
   var buffers = [];
   stream.on('data', function(data) { buffers.push(data); });
   stream.on('end', function() {
