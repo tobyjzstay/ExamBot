@@ -218,9 +218,14 @@ client.on('message', message => {
       .setTitle('Status')
       .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`);
     message.channel.send(embeddedMessage);
-  } else if (args[0] == 'fetch') { // retrives the data from the source
-    if (fetchData()) message.reply("an error has occurred attempting to fetch the exam data.");
-    else message.reply("successfully fetched the exam data.");
+  } else if (args[0] == 'update') { // retrives the data from the source and processes it
+    if (fetchData()) {
+      message.reply("an error has occurred attempting to fetch the exam data.");
+      return;
+    } else {
+      processData();
+      message.reply("successfully fetched and processed the exam data.");
+    }
   } else if (args[0] == 'exam') {
     if (args.length < 2) { // missing exam course
       message.reply(`missing arguments. Valid arguments: \`!exam <course> [course ...]\` e.g. \`!exam comp102\` \`!exam cgra-151 comp-103 engr-123\``);
