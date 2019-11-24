@@ -339,41 +339,57 @@ client.on('message', message => {
     if (args.length < 2) { // missing exam course
       message.reply(`missing arguments. Valid arguments: \`${PREFIX}notify <course> [course ...]\` e.g. \`${PREFIX}notify comp102\` \`${PREFIX}notify cgra-151 comp-103 engr-123\``);
       return;
-    }
-    // find exam courses
-    var exams = [args.length-1];
-    for (var i = 1; i < args.length; i++) {
-      exams[i-1] = args[i];
-    }
-    // print exam data to each channel
-    for (var i = 0; i < exams.length; i++) {
-      var exam = parseExam(exams[i].toUpperCase());
-      if (exam != undefined) { // valid exam
-        var examChannel = getChannel(exam);
-        var datum = data[exam];
-        if (datum != undefined) { // valid exam course code
-          var channel = client.channels.find(channel => channel.name == examChannel);
-          if (channel != undefined) { // channel exists for the exam
-            var examData = formatExams(message, [exam], false); // get the formatted data
-            if (examData.length > 0) { // generate the embedded message
-              const embeddedMessage = new richEmbedTemplate()
-                .setTitle('Exam Times')
-                .setDescription(`\`\`\`${examData}\`\`\``)
-                .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
-                channel.send(embeddedMessage);
-                // find the message sent and pin it
-                const collector = new Discord.MessageCollector(channel, m => m.author.id == client.user.id, { time: 5000 });
-                collector.on('collect', message => {
-                  message.pin();
-                  collector.stop();
-                });
-            }
-          } else message.reply(`couldn't find the channel for '${exams[i]}'. Does the channel #${examChannel} exist?`);
-        } else message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
-      } else message.reply(`'${exams[i]}' is not a valid course.`);
+    } // find all the exam courses
+    if (args[1] == 'all') {
+      var exams = Object.keys(data);
+      for (var i = 1; i < args.length; i++) {
+        exams[i-1] = args[i];
+      }
+      notifyExams(message, exams, false); // send exam data to each channel
+    } else { // find exam courses in arguments
+      var exams = [args.length-1];
+      for (var i = 1; i < args.length; i++) {
+        exams[i-1] = args[i];
+      }
+      notifyExams(message, exams, true); // send exam data to each channel
     }
   }
 });
+
+/**
+ * Generates a formatted string containing the exam data and sends it to its respective channel.
+ * @param {object}
+ * @param {object}
+ * @param {boolean}
+ */
+function notifyExams(message, exams, displayErrors) {
+  for (var i = 0; i < exams.length; i++) {
+    var exam = parseExam(exams[i].toUpperCase());
+    if (exam != undefined) { // valid exam
+      var examChannel = getChannel(exam);
+      var datum = data[exam];
+      if (datum != undefined) { // valid exam course code
+        var channel = client.channels.find(channel => channel.name == examChannel);
+        if (channel != undefined) { // channel exists for the exam
+          var examData = formatExams(message, [exam], false); // get the formatted data
+          if (examData.length > 0) { // generate the embedded message
+            const embeddedMessage = new richEmbedTemplate()
+              .setTitle('Exam Times')
+              .setDescription(`\`\`\`${examData}\`\`\``)
+              .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
+              channel.send(embeddedMessage);
+              // find the message sent and pin it
+              const collector = new Discord.MessageCollector(channel, m => m.author.id == client.user.id, { time: 5000 });
+              collector.on('collect', message => {
+                message.pin();
+                collector.stop();
+              });
+          }
+        } else if (displayErrors) message.reply(`couldn't find the channel for '${exams[i]}'. Does the channel #${examChannel} exist?`);
+      } else if (displayErrors) message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
+    } else if (displayErrors) message.reply(`'${exams[i]}' is not a valid course.`);
+  }
+}
 
 /**
  * Generates an embedded message template, includuing the bot logo.
