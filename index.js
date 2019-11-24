@@ -104,6 +104,15 @@ function parseExam(exam) {
 }
 
 /**
+ * Returns the channel name of the exam.
+ * @param {string}
+ * @return {string}
+ */
+function getChannel(exam) {
+  return exam.slice(0, 4).toLowerCase() + '-' + exam.slice(4, 7);
+}
+
+/**
  * Returns the duration.
  * @param {number}
  * @return {number}
@@ -187,7 +196,7 @@ function formatExams(message, exams, displayErrors) {
       if (datum != undefined) {
         examData += `${exam}\t${parseDuration(datum.duration)}\t${parseDate(datum.date)}\t${parseStart(datum.start)}\t${parseRooms(datum.rooms)}\n`;
       } else if (displayErrors) message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
-    } else  if (displayErrors) message.reply(`'${exams[i]}' is not a valid course.`);
+    } else if (displayErrors) message.reply(`'${exams[i]}' is not a valid course.`);
   }
   return examData;
 }
@@ -241,7 +250,7 @@ client.on('message', message => {
       message.reply(`successfully changed the prefix to \`${PREFIX}\``);
     }
   } else if (args[0] == 'seturl') { // updates the url to fetch the data from
-    if (args.length < 2) { // missing exam course
+    if (args.length < 2) { // missing url
       message.reply(`missing arguments. Valid arguments: \`${PREFIX}seturl <url>\``);
       return;
     }
@@ -272,7 +281,7 @@ client.on('message', message => {
         .setDescription(`\`\`\`${examData}\`\`\``)
         .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
         message.reply(embeddedMessage);
-      }
+    }
   } else if (args[0] == 'exams') {
     // find the exam courses of the user by checking their roles
     var exams = new Array();
@@ -325,6 +334,43 @@ client.on('message', message => {
       // how the bot should send the message
       if (i == 0) message.reply(embeddedMessage); // first message
       else message.channel.send(embeddedMessage);
+    }
+  } else if (args[0] == 'notify') {
+    if (args.length < 2) { // missing exam course
+      message.reply(`missing arguments. Valid arguments: \`${PREFIX}notify <course> [course ...]\` e.g. \`${PREFIX}notify comp102\` \`${PREFIX}notify cgra-151 comp-103 engr-123\``);
+      return;
+    }
+    // find exam courses
+    var exams = [args.length-1];
+    for (var i = 1; i < args.length; i++) {
+      exams[i-1] = args[i];
+    }
+    // print exam data to each channel
+    for (var i = 0; i < exams.length; i++) {
+      var exam = parseExam(exams[i].toUpperCase());
+      if (exam != undefined) { // valid exam
+        var examChannel = getChannel(exam);
+        var datum = data[exam];
+        if (datum != undefined) { // valid exam course code
+          var channel = client.channels.find(channel => channel.name == examChannel);
+          if (channel != undefined) { // channel exists for the exam
+            var examData = formatExams(message, [exam], false); // get the formatted data
+            if (examData.length > 0) { // generate the embedded message
+              const embeddedMessage = new richEmbedTemplate()
+                .setTitle('Exam Times')
+                .setDescription(`\`\`\`${examData}\`\`\``)
+                .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
+                channel.send(embeddedMessage);
+                // find the message sent and pin it
+                const collector = new Discord.MessageCollector(channel, m => m.author.id == client.user.id, { time: 5000 });
+                collector.on('collect', message => {
+                  message.pin();
+                  collector.stop();
+                });
+            }
+          } else message.reply(`couldn't find the channel for '${exams[i]}'. Does the channel #${examChannel} exist?`);
+        } else message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
+      } else message.reply(`'${exams[i]}' is not a valid course.`);
     }
   }
 });
