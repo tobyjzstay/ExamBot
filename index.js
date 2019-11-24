@@ -279,7 +279,7 @@ client.on('message', message => {
       const embeddedMessage = new richEmbedTemplate()
         .setTitle('Exam Times')
         .setDescription(`\`\`\`${examData}\`\`\``)
-        .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
+        .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
         message.reply(embeddedMessage);
     }
   } else if (args[0] == 'exams') {
@@ -324,7 +324,8 @@ client.on('message', message => {
         embeddedMessage = new richEmbedTemplate()
           .setTitle('Exam Times')
           .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
-          .setFooter(`Page ${i+1} of ${examDataMessages.length}`);
+          .setFooter(`Page ${i+1} of ${examDataMessages.length}`)
+          .setTimestamp();
       } else {
         embeddedMessage = new blankEmbedTemplate()
           .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
@@ -345,7 +346,8 @@ client.on('message', message => {
       for (var i = 1; i < args.length; i++) {
         exams[i-1] = args[i];
       }
-      notifyExams(message, exams, false); // send exam data to each channel
+      var notified = notifyExams(message, exams, false); // send exam data to each channel
+      message.reply(`successfully notified ${notified} channels.`);
     } else { // find exam courses in arguments
       var exams = [args.length-1];
       for (var i = 1; i < args.length; i++) {
@@ -363,6 +365,7 @@ client.on('message', message => {
  * @param {boolean}
  */
 function notifyExams(message, exams, displayErrors) {
+  var notified = 0;
   for (var i = 0; i < exams.length; i++) {
     var exam = parseExam(exams[i].toUpperCase());
     if (exam != undefined) { // valid exam
@@ -376,19 +379,16 @@ function notifyExams(message, exams, displayErrors) {
             const embeddedMessage = new richEmbedTemplate()
               .setTitle('Exam Times')
               .setDescription(`\`\`\`${examData}\`\`\``)
-              .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
-              channel.send(embeddedMessage);
-              // find the message sent and pin it
-              const collector = new Discord.MessageCollector(channel, m => m.author.id == client.user.id, { time: 5000 });
-              collector.on('collect', message => {
-                message.pin();
-                collector.stop();
-              });
+              .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
+              .setTimestamp();
+              channel.send(embeddedMessage).then(msg => msg.pin()); // pin the message
+              notified++;
           }
         } else if (displayErrors) message.reply(`couldn't find the channel for '${exams[i]}'. Does the channel #${examChannel} exist?`);
       } else if (displayErrors) message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
     } else if (displayErrors) message.reply(`'${exams[i]}' is not a valid course.`);
   }
+  return notified;
 }
 
 /**
