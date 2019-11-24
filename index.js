@@ -226,9 +226,23 @@ client.on('message', message => {
       processData();
       message.reply("successfully fetched and processed the exam data.");
     }
+  } else if (args[0] == 'setprefix') { // updates the url to fetch the data from
+    if (args.length < 2) message.reply(`missing arguments. Valid arguments: \`${PREFIX}setprefix <prefix>\``); // missing exam course
+    else if (args[1] == PREFIX) message.reply(`that prefix is already in use.`); // same prefix
+    else {
+      PREFIX = args[1];
+      // update the config file
+      var file = require(CONFIG_FILE);
+      file.prefix = PREFIX;
+      fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
+        if (error) return console.log(error);
+      });
+      client.user.setActivity(`${PREFIX}help`);
+      message.reply(`successfully changed the prefix to \`${PREFIX}\``);
+    }
   } else if (args[0] == 'seturl') { // updates the url to fetch the data from
     if (args.length < 2) { // missing exam course
-      message.reply(`missing arguments. Valid arguments: \`!seturl <url>\``);
+      message.reply(`missing arguments. Valid arguments: \`${PREFIX}seturl <url>\``);
       return;
     }
     if (validURL(args[1])) {
@@ -237,13 +251,13 @@ client.on('message', message => {
       var file = require(CONFIG_FILE);
       file.url = URL;
       fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
-        if (error) return console.log(err);
+        if (error) return console.log(error);
       });
-      message.reply("successfully updated the URL. To update the exam data, use `!update`");
+      message.reply(`successfully updated the URL. To update the exam data, use \`${PREFIX}update\``);
     } else message.reply("invalid URL. Does the URL end with `./xlxs`?");
   } else if (args[0] == 'exam') {
     if (args.length < 2) { // missing exam course
-      message.reply(`missing arguments. Valid arguments: \`!exam <course> [course ...]\` e.g. \`!exam comp102\` \`!exam cgra-151 comp-103 engr-123\``);
+      message.reply(`missing arguments. Valid arguments: \`${PREFIX}exam <course> [course ...]\` e.g. \`${PREFIX}exam comp102\` \`${PREFIX}exam cgra-151 comp-103 engr-123\``);
       return;
     }
     // find exam courses
