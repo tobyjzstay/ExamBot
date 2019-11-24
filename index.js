@@ -226,6 +226,21 @@ client.on('message', message => {
       processData();
       message.reply("successfully fetched and processed the exam data.");
     }
+  } else if (args[0] == 'seturl') { // updates the url to fetch the data from
+    if (args.length < 2) { // missing exam course
+      message.reply(`missing arguments. Valid arguments: \`!seturl <url>\``);
+      return;
+    }
+    if (validURL(args[1])) {
+      URL = args[1];
+      // update the config file
+      var file = require(CONFIG_FILE);
+      file.url = URL;
+      fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
+        if (error) return console.log(err);
+      });
+      message.reply("successfully updated the URL. To update the exam data, use `!update`");
+    } else message.reply("invalid URL. Does the URL end with `./xlxs`?");
   } else if (args[0] == 'exam') {
     if (args.length < 2) { // missing exam course
       message.reply(`missing arguments. Valid arguments: \`!exam <course> [course ...]\` e.g. \`!exam comp102\` \`!exam cgra-151 comp-103 engr-123\``);
@@ -236,7 +251,6 @@ client.on('message', message => {
     for (var i = 1; i < args.length; i++) {
       exams[i-1] = args[i];
     }
-    console.log(typeof exams);
     var examData = formatExams(message, exams, true); // get the formatted data
     if (examData.length > 0) { // generate the embedded message
       const embeddedMessage = new richEmbedTemplate()
@@ -337,6 +351,21 @@ function formatTime(milliseconds) {
   let minutes = Math.floor(totalSeconds / 60);
   let seconds = Math.floor(totalSeconds % 60);
   return `${days} days, ${hours} hours, ${minutes} minutes and ${seconds} seconds`;
+}
+
+/**
+ * Returns whether the input is a valid url address.
+ * @param {string}
+ * @return {boolean}
+ */
+function validURL(url) {
+  var pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+    '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+    '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+    '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+  return pattern.test(url) && url.endsWith('.xlsx');
 }
 
 // update and process the data before running the client
