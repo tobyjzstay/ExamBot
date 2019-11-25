@@ -381,6 +381,12 @@ function notifyExams(message, exams, displayErrors) {
               .setDescription(`\`\`\`${examData}\`\`\``)
               .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
               .setTimestamp();
+              channel.fetchMessages().then(messages => messages.filter(m => m.author.id == client.user.id)).then(messages => {
+                let arr = messages.array();
+                for (let i = 0; i < arr.length; i++) {
+                  arr[i].delete();
+                }
+              });
               channel.send(embeddedMessage).then(msg => msg.pin()); // pin the message
               notified++;
           }
