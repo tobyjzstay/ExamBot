@@ -100,6 +100,8 @@ function getValue(worksheet, id) {
 function parseExam(exam) {
   if (/^[a-zA-Z]{4}[0-9]{3}/.test(exam)) {
     return exam.slice(0, 7).toUpperCase();
+  } else if (/^[a-zA-Z]{4}-[0-9]{3}/.test(exam)) {
+      return exam.slice(0, 4).toUpperCase() + exam.slice(5, 8);
   } else return undefined;
 }
 
@@ -355,6 +357,11 @@ client.on('message', message => {
       }
       notifyExams(message, exams, true); // send exam data to each channel
     }
+  } else if (args[0] == 'refresh') {
+    channelName = message.channel.name;
+    var exam = parseExam(channelName);
+    if (exam) notifyExams(message, [exam], true);
+    else message.reply(`invalid channel. Is <#${message.channel.id}> a course channel?`);
   }
 });
 
@@ -381,6 +388,7 @@ function notifyExams(message, exams, displayErrors) {
               .setDescription(`\`\`\`${examData}\`\`\``)
               .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
               .setTimestamp();
+              // delete all old exam data
               channel.fetchMessages().then(messages => messages.filter(m => m.author.id == client.user.id)).then(messages => {
                 let arr = messages.array();
                 for (let i = 0; i < arr.length; i++) {
