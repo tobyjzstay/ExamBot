@@ -218,6 +218,8 @@ client.on('ready', () => {
 client.on('message', message => {
   if (!message.content.startsWith(PREFIX)) return; // the message must start with the prefix
   const args = message.content.slice(PREFIX.length).split(/ +/); // slice message into arguments
+
+  // user commands
   if (args[0] == 'about') { // information about the bot
     const embeddedMessage = new richEmbedTemplate()
       .setTitle('About')
@@ -229,43 +231,6 @@ client.on('message', message => {
       .setTitle('Status')
       .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`);
     message.channel.send(embeddedMessage);
-  } else if (args[0] == 'update') { // retrives the data from the source and processes it
-    if (fetchData()) {
-      message.reply("an error has occurred attempting to fetch the exam data.");
-      return;
-    } else {
-      processData();
-      message.reply("successfully fetched and processed the exam data.");
-    }
-  } else if (args[0] == 'setprefix') { // updates the url to fetch the data from
-    if (args.length < 2) message.reply(`missing arguments. Valid arguments: \`${PREFIX}setprefix <prefix>\``); // missing exam course
-    else if (args[1] == PREFIX) message.reply(`that prefix is already in use.`); // same prefix
-    else {
-      PREFIX = args[1];
-      // update the config file
-      var file = require(CONFIG_FILE);
-      file.prefix = PREFIX;
-      fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
-        if (error) return console.log(error);
-      });
-      client.user.setActivity(`${PREFIX}help`);
-      message.reply(`successfully changed the prefix to \`${PREFIX}\``);
-    }
-  } else if (args[0] == 'seturl') { // updates the url to fetch the data from
-    if (args.length < 2) { // missing url
-      message.reply(`missing arguments. Valid arguments: \`${PREFIX}seturl <url>\``);
-      return;
-    }
-    if (validURL(args[1])) {
-      URL = args[1];
-      // update the config file
-      var file = require(CONFIG_FILE);
-      file.url = URL;
-      fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
-        if (error) return console.log(error);
-      });
-      message.reply(`successfully updated the URL. To update the exam data, use \`${PREFIX}update\``);
-    } else message.reply("invalid URL. Does the URL end with `./xlxs`?");
   } else if (args[0] == 'exam') {
     if (args.length < 2) { // missing exam course
       message.reply(`missing arguments. Valid arguments: \`${PREFIX}exam <course> [course ...]\` e.g. \`${PREFIX}exam comp102\` \`${PREFIX}exam cgra-151 comp-103 engr-123\``);
@@ -299,7 +264,16 @@ client.on('message', message => {
         .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
       message.reply(embeddedMessage);
     } else message.reply('couldn\'t find exam data for your course roles for the current trimister.'); // none of the user courses were valid
-  } else if (args[0] == 'list') { // display all the exam data
+  } else if (args[0] == 'refresh') {
+    channelName = message.channel.name;
+    var exam = parseExam(channelName);
+    if (exam) notifyExams(message, [exam], true);
+    else message.reply(`invalid channel. Is <#${message.channel.id}> a course channel?`);
+  }
+
+  // admin commands
+  if (!message.member.hasPermission("ADMINISTRATOR")) return;
+  if (args[0] == 'list') { // display all the exam data
     var exams = Object.keys(data);
     exams.sort(function(a, b) { // sort by alphabetical exam course
       if(a < b) { return -1; }
@@ -357,11 +331,43 @@ client.on('message', message => {
       }
       notifyExams(message, exams, true); // send exam data to each channel
     }
-  } else if (args[0] == 'refresh') {
-    channelName = message.channel.name;
-    var exam = parseExam(channelName);
-    if (exam) notifyExams(message, [exam], true);
-    else message.reply(`invalid channel. Is <#${message.channel.id}> a course channel?`);
+  } else if (args[0] == 'setprefix') { // updates the url to fetch the data from
+    if (args.length < 2) message.reply(`missing arguments. Valid arguments: \`${PREFIX}setprefix <prefix>\``); // missing exam course
+    else if (args[1] == PREFIX) message.reply(`that prefix is already in use.`); // same prefix
+    else {
+      PREFIX = args[1];
+      // update the config file
+      var file = require(CONFIG_FILE);
+      file.prefix = PREFIX;
+      fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
+        if (error) return console.log(error);
+      });
+      client.user.setActivity(`${PREFIX}help`);
+      message.reply(`successfully changed the prefix to \`${PREFIX}\``);
+    }
+  } else if (args[0] == 'seturl') { // updates the url to fetch the data from
+    if (args.length < 2) { // missing url
+      message.reply(`missing arguments. Valid arguments: \`${PREFIX}seturl <url>\``);
+      return;
+    }
+    if (validURL(args[1])) {
+      URL = args[1];
+      // update the config file
+      var file = require(CONFIG_FILE);
+      file.url = URL;
+      fs.writeFile(CONFIG_FILE, JSON.stringify(file, null, 2), function (error) {
+        if (error) return console.log(error);
+      });
+      message.reply(`successfully updated the URL. To update the exam data, use \`${PREFIX}update\``);
+    } else message.reply("invalid URL. Does the URL end with `./xlxs`?");
+  } else if (args[0] == 'update') { // retrives the data from the source and processes it
+    if (fetchData()) {
+      message.reply("an error has occurred attempting to fetch the exam data.");
+      return;
+    } else {
+      processData();
+      message.reply("successfully fetched and processed the exam data.");
+    }
   }
 });
 
