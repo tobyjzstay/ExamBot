@@ -213,6 +213,18 @@ client.on('ready', () => {
 });
 
 /**
+ * Error handling.
+ */
+process.on("unhandledRejection", error =>
+  console.error(`Uncaught Promise Rejection:\n${error}`)
+);
+process.on("unhandledError", error =>
+  console.error(`Unhandled Error:\n${error}`)
+);
+client.on("disconnect", error => console.error(`Disconnected! \n${error}`));
+client.on("error", console.error);
+
+/**
  * Called when a message is sent in the server.
  */
 client.on('message', message => {
