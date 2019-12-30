@@ -17,6 +17,7 @@ var TOKEN;
 var PREFIX = '!';
 var URL = 'https://www.victoria.ac.nz/__data/assets/excel_doc/0005/1766759/end-of-year-exam-timetable.xlsx';
 var MAX_EMBED = 2000; // maximum characters allowed per embedded message
+var ERROR = true;
 
 const client = new Discord.Client();
 
@@ -38,18 +39,24 @@ if (fs.existsSync(CONFIG_FILE)) {
   console.log('Missing config.json file configuration settings for the bot! Default settings will be used.');
 }
 
+function getFileUpdatedDate() {
+  const stats = fs.statSync(DATA_FILE);
+  return stats.mtime;
+}
+
 /**
  * Retrives data from the source, keeping the data up to date.
  * @return {boolean}
  */
 function fetchData() {
-  var options = { filename: DATA_FILE };
-  download(URL, options, function(error){
-    if (error) {
+  var options = { filename: DATA_FILE, timeout: 500 };
+  download(URL, options, function(error) {
+    if (error || error == 'Timeout' || error == 404) {
       console.error(error);
-      return false;
-    } else return true;
-  })
+      ERROR = true;
+    } else ERROR = false;
+  });
+  return ERROR;
 }
 
 var data = {}; // stores all the raw exam data
@@ -241,7 +248,9 @@ client.on('message', message => {
   } else if (args[0] == 'status') { // statistics about the bot
     const embeddedMessage = new richEmbedTemplate()
       .setTitle('Status')
-      .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`);
+      .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`)
+      .addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`)
+      .setTimestamp();
     message.channel.send(embeddedMessage);
   } else if (args[0] == 'exam') {
     if (args.length < 2) { // missing exam course
@@ -258,8 +267,9 @@ client.on('message', message => {
       const embeddedMessage = new richEmbedTemplate()
         .setTitle('Exam Times')
         .setDescription(`\`\`\`${examData}\`\`\``)
-        .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
-        message.reply(embeddedMessage);
+        .addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).`)
+        .setTimestamp();
+      message.reply(embeddedMessage);
     }
   } else if (args[0] == 'exams') {
     // find the exam courses of the user by checking their roles
@@ -273,7 +283,8 @@ client.on('message', message => {
       const embeddedMessage = new richEmbedTemplate()
         .setTitle('Exam Times')
         .setDescription(`\`\`\`${examData}\`\`\``)
-        .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).');
+        .addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).`)
+        .setTimestamp();
       message.reply(embeddedMessage);
     } else message.reply('couldn\'t find exam data for your course roles for the current trimister.'); // none of the user courses were valid
   } else if (args[0] == 'refresh') {
@@ -319,7 +330,10 @@ client.on('message', message => {
           .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
           .setFooter(`Page ${i+1} of ${examDataMessages.length}`);
       }
-      if (i == examDataMessages.length-1) embeddedMessage.addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).'); // last message
+      if (i == examDataMessages.length-1) { // last message
+        embeddedMessage.addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).`)
+        embeddedMessage.setTimestamp();
+      }
       // how the bot should send the message
       if (i == 0) message.reply(embeddedMessage); // first message
       else message.channel.send(embeddedMessage);
@@ -361,8 +375,7 @@ client.on('message', message => {
     if (args.length < 2) { // missing url
       message.reply(`missing arguments. Valid arguments: \`${PREFIX}seturl <url>\``);
       return;
-    }
-    if (validURL(args[1])) {
+    } else if (validURL(args[1])) {
       URL = args[1];
       // update the config file
       var file = require(CONFIG_FILE);
@@ -373,12 +386,12 @@ client.on('message', message => {
       message.reply(`successfully updated the URL. To update the exam data, use \`${PREFIX}update\``);
     } else message.reply("invalid URL. Does the URL end with `./xlxs`?");
   } else if (args[0] == 'update') { // retrives the data from the source and processes it
-    if (fetchData()) {
-      message.reply("an error has occurred attempting to fetch the exam data.");
-      return;
-    } else {
-      processData();
-      message.reply("successfully fetched and processed the exam data.");
+    if (fetchData()) message.reply("an error has occurred attempting to fetch the exam data. Is the URL valid?");
+    else {
+      if (new Date() - getFileUpdatedDate() < 10000) {
+        processData();
+        message.reply("successfully fetched and processed the exam data.");
+      } else message.reply("an error has occurred attempting to fetch the exam data. Is the URL valid?");
     }
   }
 });
@@ -404,17 +417,17 @@ function notifyExams(message, exams, displayErrors) {
             const embeddedMessage = new richEmbedTemplate()
               .setTitle('Exam Times')
               .setDescription(`\`\`\`${examData}\`\`\``)
-              .addField('\u200b', 'To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).')
+              .addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).`)
               .setTimestamp();
-              // delete all old exam data
-              channel.fetchMessages().then(messages => messages.filter(m => m.author.id == client.user.id)).then(messages => {
-                let arr = messages.array();
-                for (let i = 0; i < arr.length; i++) {
-                  arr[i].delete();
-                }
-              });
-              channel.send(embeddedMessage).then(msg => msg.pin()); // pin the message
-              notified++;
+            // delete all old exam data
+            channel.fetchMessages().then(messages => messages.filter(m => m.author.id == client.user.id)).then(messages => {
+              let arr = messages.array();
+              for (let i = 0; i < arr.length; i++) {
+                arr[i].delete();
+              }
+            });
+            channel.send(embeddedMessage).then(msg => msg.pin()); // pin the message
+            notified++;
           }
         } else if (displayErrors) message.reply(`couldn't find the channel for '${exams[i]}'. Does the channel #${examChannel} exist?`);
       } else if (displayErrors) message.reply(`couldn't find exam data for '${exams[i]}'. Does the course exist for the current trimister?`);
@@ -454,6 +467,7 @@ function blankEmbedTemplate() {
 function formatTime(milliseconds) {
   let totalSeconds = (milliseconds / 1000);
   let days = Math.floor(totalSeconds / 86400);
+  totalSeconds %= 86400;
   let hours = Math.floor(totalSeconds / 3600);
   totalSeconds %= 3600;
   let minutes = Math.floor(totalSeconds / 60);
