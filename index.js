@@ -273,6 +273,10 @@ client.on('message', message => {
       message.reply(embeddedMessage);
     }
   } else if (args[0] == 'exams') {
+    if (message.channel.type != 'text') { // direct message command
+      message.reply('You need to be in the ECS Discord server to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     // find the exam courses of the user by checking their roles
     var exams = new Array();
     message.member.roles.forEach(function(value) {
@@ -290,15 +294,19 @@ client.on('message', message => {
       message.reply(embeddedMessage);
     } else message.reply('couldn\'t find exam data for your course roles for the current trimister.'); // none of the user courses were valid
   } else if (args[0] == 'refresh') {
+    if (message.channel.type != 'text' || !message.member.hasPermission("ADMINISTRATOR")) { // direct message or admin command
+      message.reply('You need to be in the ECS Discord server and have administrator privileges to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     channelName = message.channel.name;
     var exam = parseExam(channelName);
     if (exam) notifyExams(message, [exam], true);
     else message.reply(`invalid channel. Is <#${message.channel.id}> a course channel?`);
-  }
-
-  // admin commands
-  if (!message.member.hasPermission("ADMINISTRATOR")) return;
-  if (args[0] == 'list') { // display all the exam data
+  } else if (args[0] == 'list') { // display all the exam data
+    if (message.channel.type != 'text' || !message.member.hasPermission("ADMINISTRATOR")) { // direct message or admin command
+      message.reply('You need to be in the ECS Discord server and have administrator privileges to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     var exams = Object.keys(data);
     exams.sort(function(a, b) { // sort by alphabetical exam course
       if(a < b) { return -1; }
@@ -331,7 +339,12 @@ client.on('message', message => {
       }
       message.channel.send(embeddedMessage);
     }
-  } else if (args[0] == 'notify') {
+  }
+  else if (args[0] == 'notify') {
+    if (message.channel.type != 'text' || !message.member.hasPermission("ADMINISTRATOR")) { // direct message or admin command
+      message.reply('You need to be in the ECS Discord server and have administrator privileges to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     if (args.length < 2) { // missing exam course
       message.reply(`missing arguments. Valid arguments: \`${PREFIX}notify <course> [course ...]\` e.g. \`${PREFIX}notify comp102\` \`${PREFIX}notify cgra-151 comp-103 engr-123\``);
       return;
@@ -351,6 +364,10 @@ client.on('message', message => {
       notifyExams(message, exams, true); // send exam data to each channel
     }
   } else if (args[0] == 'setprefix') { // updates the url to fetch the data from
+    if (message.channel.type != 'text' || !message.member.hasPermission("ADMINISTRATOR")) { // direct message or admin command
+      message.reply('You need to be in the ECS Discord server and have administrator privileges to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     if (args.length < 2) message.reply(`missing arguments. Valid arguments: \`${PREFIX}setprefix <prefix>\``); // missing exam course
     else if (args[1] == PREFIX) message.reply(`that prefix is already in use.`); // same prefix
     else {
@@ -365,6 +382,10 @@ client.on('message', message => {
       message.reply(`successfully changed the prefix to \`${PREFIX}\``);
     }
   } else if (args[0] == 'seturl') { // updates the url to fetch the data from
+    if (message.channel.type != 'text' || !message.member.hasPermission("ADMINISTRATOR")) { // direct message or admin command
+      message.reply('You need to be in the ECS Discord server and have administrator privileges to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     if (args.length < 2) { // missing url
       message.reply(`missing arguments. Valid arguments: \`${PREFIX}seturl <url>\``);
       return;
@@ -379,6 +400,10 @@ client.on('message', message => {
       message.reply(`successfully updated the URL. To update the exam data, use \`${PREFIX}update\``);
     } else message.reply("invalid URL. Does the URL end with `./xlxs`?");
   } else if (args[0] == 'update') { // retrives the data from the source and processes it
+    if (message.channel.type != 'text' || !message.member.hasPermission("ADMINISTRATOR")) { // direct message or admin command
+      message.reply('You need to be in the ECS Discord server and have administrator privileges to use this command. https://discord.gg/x4S3hYP');
+      return;
+    }
     if (fetchData()) message.reply("an error has occurred attempting to fetch the exam data. Is the URL valid?");
     else {
       if (new Date() - getFileUpdatedDate() < 10000) {
