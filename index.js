@@ -319,24 +319,23 @@ client.on('message', message => {
     // generate the embedded messages
     for (var i = 0; i < examDataMessages.length; i++) {
       var embeddedMessage = null;
-      if (i == 0) { // first message
-        embeddedMessage = new richEmbedTemplate()
-          .setTitle('Exam Times')
+      // if (i == 0) { // first message
+      //   embeddedMessage = new richEmbedTemplate()
+      //     .setTitle('Exam Times')
+      //     .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
+      //     .setFooter(`Page ${i+1} of ${examDataMessages.length}`)
+      //     .setTimestamp();
+      // } else {
+        embeddedMessage = new blankEmbedTemplate()
           .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
           .setFooter(`Page ${i+1} of ${examDataMessages.length}`)
           .setTimestamp();
-      } else {
-        embeddedMessage = new blankEmbedTemplate()
-          .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
-          .setFooter(`Page ${i+1} of ${examDataMessages.length}`);
-      }
+      // }
       if (i == examDataMessages.length-1) { // last message
         embeddedMessage.addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).`)
         embeddedMessage.setTimestamp();
       }
-      // how the bot should send the message
-      if (i == 0) message.reply(embeddedMessage); // first message
-      else message.channel.send(embeddedMessage);
+      message.channel.send(embeddedMessage);
     }
   } else if (args[0] == 'notify') {
     if (args.length < 2) { // missing exam course
