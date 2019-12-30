@@ -441,11 +441,11 @@ function notifyExams(message, exams, displayErrors) {
  * @return {object}
  */
 function richEmbedTemplate() {
-  const logo = new Discord.Attachment('./vuw-logo.png', 'vuw-logo.png');
+  const logo = new Discord.Attachment('./icon.jpg', 'icon.jpg');
   var embed = new Discord.RichEmbed()
     .attachFile(logo)
     .setColor('#115737')
-    .setAuthor('Examination Information', 'attachment://vuw-logo.png', 'https://www.victoria.ac.nz/students/study/timetables');
+    .setAuthor('Examination Information', 'attachment://icon.jpg', 'https://www.victoria.ac.nz/students/study/timetables');
     return embed;
 }
 
