@@ -249,7 +249,7 @@ client.on('message', message => {
     const embeddedMessage = new richEmbedTemplate()
       .setTitle('Status')
       .setDescription(`The bot has been running since ${client.readyAt} (${formatTime(client.uptime)})`)
-      .addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`)
+      .addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `\u200b`)
       .setTimestamp();
     message.channel.send(embeddedMessage);
   } else if (args[0] == 'exam') {
@@ -263,7 +263,8 @@ client.on('message', message => {
       exams[i-1] = args[i];
     }
     var examData = formatExams(message, exams, true); // get the formatted data
-    if (examData.length > 0) { // generate the embedded message
+    if (examData.length > MAX_EMBED) message.reply(`too many arguments to process. Try reducing the amount of arguments.`);
+    else if (examData.length > 0) { // generate the embedded message
       const embeddedMessage = new richEmbedTemplate()
         .setTitle('Exam Times')
         .setDescription(`\`\`\`${examData}\`\`\``)
@@ -279,7 +280,8 @@ client.on('message', message => {
       if (exam) exams.push(exam);
     });
     var examData = formatExams(message, exams, false); // get the formatted data
-    if (examData.length > 0) { // generate the embedded message
+    if (examData.length > MAX_EMBED) message.reply(`too many arguments to process. Try reducing the amount of course roles you have.`);
+    else if (examData.length > 0) { // generate the embedded message
       const embeddedMessage = new richEmbedTemplate()
         .setTitle('Exam Times')
         .setDescription(`\`\`\`${examData}\`\`\``)
@@ -319,18 +321,10 @@ client.on('message', message => {
     // generate the embedded messages
     for (var i = 0; i < examDataMessages.length; i++) {
       var embeddedMessage = null;
-      // if (i == 0) { // first message
-      //   embeddedMessage = new richEmbedTemplate()
-      //     .setTitle('Exam Times')
-      //     .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
-      //     .setFooter(`Page ${i+1} of ${examDataMessages.length}`)
-      //     .setTimestamp();
-      // } else {
         embeddedMessage = new blankEmbedTemplate()
           .setDescription(`\`\`\`${examDataMessages[i]}\`\`\``)
           .setFooter(`Page ${i+1} of ${examDataMessages.length}`)
           .setTimestamp();
-      // }
       if (i == examDataMessages.length-1) { // last message
         embeddedMessage.addField(`Last updated: ${formatTime(new Date().getTime()-getFileUpdatedDate().getTime())} ago.`, `To find out your room, login into [Student Records](https://student-records.vuw.ac.nz).`)
         embeddedMessage.setTimestamp();
