@@ -5,30 +5,33 @@ A bot created to provide information about the Victoria University of Wellington
 Experiment with ExamBot in the [ECS Test Environment](https://discord.gg/x4S3hYP) server - made for testing the bot out.
 
 A course specified by the user displays information about the next exam:
-![!exam comp102](https://lh4.googleusercontent.com/l-tGQpFrXsd-tjB58Fh0Vf6E_5HSMgfFYSsxV7IgPWdwH6nmCo03a3Oq8aFPQxf2UCVTLLo29uHPQtaq8FqT=w1920-h937)
+![!exam comp102](https://i.imgur.com/N3M6lk6.png)
 
 If a user has selected their course roles, they can find out all their exam information for the current trimester with a single command:
-| ![user](https://lh4.googleusercontent.com/WojvfNMegeReTECjktae3Q7qaEJAXYucTI34dI8f2zl_ScD7YGrzpWswksRbUc6K83WPHpViOn_4iTcNMxPW=w1920-h937) |  ![!exams](https://lh4.googleusercontent.com/fNUPx3TRly7OxpkHwvNqhJ_b9glLsevch_O4vVOQGLpHWcso5vJ6CvJfryvo5hAc8Qh7FjFFUB9pBHosWU-B=w1920-h937)|
-|--|--|
+
+![user](https://i.imgur.com/aWSCzK3.png) | ![!exams](https://i.imgur.com/SZHbYLo.png)
+-- | --
+
 
 Admins of the server can send the exam information to each course channel that is pinned with the notify command:
-![notify all](https://lh5.googleusercontent.com/_n1MR7iLGp3FqWWR-w_caSnwMqDbNfqGpSK1fbUmEyKkRdRB_jGdhr_ckLQmVl7zJgjP9dl3Mo7rsYkyJeEL=w903-h620-rw)
+![notify all](https://i.imgur.com/v0q2ymI.gif)
 
 ### Commands
 All of ExamBot commands can be found listed below:
-|Command|Description|
-|--|--|
-| **```!about```** | Displays information about the bot. |
-|**```!exam <course> [course ...]```**|Displays examination information for the course arguments.|
-|**```!exams```**|Displays examination information for each of the user's course roles.|
-|**```!help```**|Displays information for all the bot commands.|
-|**```!list```**|Displays examination information for all the exam data.|
-|**```!notify { <channel> [channel ...] | all }```**|Sends examination information to all the course channels.|
-|**```!refresh```**|Updates the examination information for the current course channel.|
-|**```!setprefix <prefix>```**|Changes the prefix for all the bot commands.|
-|**```!seturl <url>```**|Changes the URL to fetch updated exam data.|
-|**```!status```**|Displays statistics about the bot.|
-|**```!update```**|Updates exam data from the set URL.|
+
+Command | Description
+-- | --
+**```!about```** | Displays information about the bot.
+**```!exam <course> [course ...]```** | Displays examination information for the course arguments.
+**```!exams```** | Displays examination information for each of the user's course roles.
+**```!help```** | Displays information for all the bot commands.
+**```!list```** | Displays examination information for all the exam data.
+**```!notify { <channel> [channel ...] \| all }```** | Sends examination information to all the course channels.
+**```!refresh```** | Updates the examination information for the current course channel.
+**```!setprefix <prefix>```** | Changes the prefix for all the bot commands.
+**```!seturl <url>```**|Changes the URL to fetch updated exam data.
+**```!status```** | Displays statistics about the bot.
+**```!update```** | Updates exam data from the set URL.
 
 ## Getting Started
 
@@ -41,19 +44,19 @@ Firstly, you will need [Git](https://git-scm.com/downloads) if you don't have it
 ```git clone https://github.com/tobyjzstay/ExamBot.git```
 
 Before you can do anything with the bot, you will need to create a bot. Head over to the [Discord Developer Portal](https://discordapp.com/developers/applications/) and click **New Application** at the top right corner and name it **ExamBot** (or whatever you like).
-![Applications](https://lh3.googleusercontent.com/RPLBf21_tToaI180tXcDSPvQfnmF1FBxGyA1rPfdFqhNuFWODl4T3gpQZSC0yQ_gIYNcqWhE-uOM01uThtHp=w1920-h937-rw)
+![Applications](https://i.imgur.com/LxYhz1P.png)
 
 You will be navigated to the **General Information** page for the bot. While you are here, you can add the image icon for the bot named `icon.jpg` in the `~/ExamBot` folder you pulled from GitHub and click **Save Changes** at the bottom.
-![General Information](https://lh5.googleusercontent.com/ltFzEjr4fUCErYLT74PLek3DjqDwTL3RIhUlcJUDh870iiw7YcIH9kqzZz333vCo_snHfpUFQbJ43r8tmflE=w1920-h937-rw)
+![General Information](https://i.imgur.com/paIENxK.png)
 
 Navigate to the **Bot** tab on the left-hand side and click the **Add Bot** on the right side. Confirm you want to make a bot. Now you should have successfully created the bot!
-![Bots](https://lh4.googleusercontent.com/RwwlQmS_mb17y0wYmA0JnkezHM93i7P1_pCQqkbfXtJWLm2QoU_2sQisFN8fy30sSllMAzHk2tb9qoe6MrIU=w1920-h937-rw)
+![Bots](https://i.imgur.com/66ViVRx.png)
 A few key pieces of information are needed before you leave the page. You will need to copy the token for the bot so click **Copy** and save this somewhere for later.
 
 Navigate to the **OAuth2** tab on the left-hand side and check the **bot** and **Administrator** boxes (you may need to scroll down). Click **Copy** to copy the URL which is an invitation link to add the bot to a server.
-![OAuth2](https://lh4.googleusercontent.com/AovpLkjmUhGlcjEPoGTqVa9qqhIU498WN4qGhBlQhOC8-nf11aLfxLebOvJtepf713VyIUaDDhOYjdQrSE9I=w1920-h937-rw)
+![OAuth2](https://i.imgur.com/t9tGoP3.png)
 Open a browser and paste the URL you just copied and add your bot to your desired server:
-![ExamBot](https://lh3.googleusercontent.com/V44hiSsT9Py4O1nT4iEiF_hdlLVNGS6LCAYZEbj7FKacGTkA2htmekoadvgs1aN-SNp-zMdDAAYNtK-MtejP=w1920-h937-rw)
+![ExamBot](https://i.imgur.com/YEWEo1T.jpg)
 
 Before we run the bot, you need to create a file to store the token named `auth.json` and copy the following:
 
