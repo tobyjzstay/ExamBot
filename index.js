@@ -20,6 +20,7 @@ var MAX_EMBED = 2000; // maximum characters allowed per embedded message
 var ERROR = true;
 
 const client = new Discord.Client();
+var data = {};
 
 // retrive the token
 if (fs.existsSync(AUTH_FILE)) {
@@ -39,6 +40,10 @@ if (fs.existsSync(CONFIG_FILE)) {
   console.log('Missing config.json file configuration settings for the bot! Default settings will be used.');
 }
 
+/**
+ * Returns the last time the data file was modified.
+ * @return {Date}
+ */
 function getFileUpdatedDate() {
   const stats = fs.statSync(DATA_FILE);
   return stats.mtime;
@@ -59,7 +64,7 @@ function fetchData() {
   return ERROR;
 }
 
-var data = {}; // stores all the raw exam data
+
 
 /**
  * Takes the data file and adds it to the object data array.
@@ -239,7 +244,27 @@ client.on('message', message => {
   const args = message.content.slice(PREFIX.length).split(/ +/); // slice message into arguments
 
   // user commands
-  if (args[0] == 'about') { // information about the bot
+  if (args[0] == 'help') { // information about the bot
+    var embeddedMessage = new blankEmbedTemplate()
+      .setTitle('ExamBot Commands')
+      .addField(`\u200b`, `\`${PREFIX}about\`\nDisplays information about the bot.`)
+      .addField(`\u200b`, `\`${PREFIX}exam <course> [course ...]\`\nDisplays examination information for the course arguments.`)
+      .addField(`\u200b`, `\`${PREFIX}exams\`\nDisplays examination information for the each of the user's course roles.`)
+      .addField(`\u200b`, `\`${PREFIX}help\`\nDisplays information for all the bot commands.`)
+      .addField(`\u200b`, `\`${PREFIX}list\` (in direct messages)\nDisplays examination information for all the exam data.`)
+      .addField(`\u200b`, `\`${PREFIX}status\`\nDisplays statistics about the bot.`);
+    message.channel.send(embeddedMessage);
+    embeddedMessage = new blankEmbedTemplate()
+      .setTitle(`ExamBot Admin Commands`)
+      .setDescription('**- Must be in the ECS Discord server as an Admin**')
+      .addField(`\u200b`, `\`${PREFIX}list\`\nDisplays examination information for all the exam data.`)
+      .addField(`\u200b`, `\`${PREFIX}notify { <channel> [channel ...] | all }\`\nSends examination information to all the course channels.`)
+      .addField(`\u200b`, `\`${PREFIX}refresh\`\nUpdates the examination information for the current course channel.`)
+      .addField(`\u200b`, `\`${PREFIX}setprefix <prefix>\`\nChanges the prefix for all the bot commands.`)
+      .addField(`\u200b`, `\`${PREFIX}seturl <url>\`\nChanges the URL to fetch updated exam data.`)
+      .addField(`\u200b`, `\`${PREFIX}update\`\nUpdates exam data from the set URL.`);
+    message.channel.send(embeddedMessage);
+  } else if (args[0] == 'about') { // information about the bot
     const embeddedMessage = new richEmbedTemplate()
       .setTitle('About')
       .setDescription('A bot created to provide information about Victoria University of Wellington examination times for Discord.')
