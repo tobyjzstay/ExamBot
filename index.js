@@ -8,6 +8,7 @@ const Discord = require('discord.js');
 const fs = require("fs");
 const download = require('download-file');
 const xlsx = require('xlsx');
+const { Console } = require('console');
 
 const client = new Discord.Client();
 const DATA_FILE = 'data.xlsx';
@@ -59,11 +60,11 @@ function processData() {
   stream.on('end', function() {
     var buffer = Buffer.concat(buffers);
     var workbook = xlsx.read(buffer, {type:"buffer"});
-    var worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    var sheet = workbook.SheetNames[0];
+    var worksheet = workbook.Sheets[sheet];
     var y = 4;
     while (true) {
-      var examCell = getValue(worksheet, 'A'+y);
-      var examValue = (examCell ? examCell.v : undefined);
+      var examValue = getValue(worksheet, 'A'+y);
       var exam = parseExam(examValue);
       if (exam != undefined) {
         var durationValue = getValue(worksheet, 'B'+y);
